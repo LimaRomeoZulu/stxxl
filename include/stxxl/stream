@@ -12,4 +12,6 @@
  **************************************************************************/
 
 #include <stxxl/bits/stream/stream.h>
-#include <stxxl/bits/stream/sort_stream.h>
+//#include <stxxl/bits/stream/sort_stream.h>
+//#include <stxxl/bits/stream/sort_stream_parallel_synchron.h>
+#include <stxxl/bits/stream/sort_stream_parallel_asynchron.h>

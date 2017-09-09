@@ -783,7 +783,7 @@ public:
     //! \param val value to be added to the current run
     void push(const value_type& val)
     {
-        assert(offset < block_type::size);
+		assert(offset < block_type::size);
 
         (*cur_block)[offset] = val;
         ++offset;

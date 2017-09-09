@@ -134,6 +134,9 @@ else()
 endif()
 set(INSTALL_CMAKE_DIR "${DEF_INSTALL_CMAKE_DIR}" CACHE PATH "Installation directory for cmake files")
 
+message (STATUS "C++ compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} at ${CMAKE_CXX_COMPILER}")
+message (STATUS "C compiler  : ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION} at ${CMAKE_C_COMPILER}")
+
 ###############################################################################
 # enable use of "make test"
 
@@ -785,7 +788,3 @@ install(EXPORT stxxl-targets DESTINATION "${INSTALL_CMAKE_DIR}")
 ###############################################################################
 # build tests and tools
 
-add_subdirectory(tools)
-add_subdirectory(examples)
-add_subdirectory(tests)
-add_subdirectory(local)
