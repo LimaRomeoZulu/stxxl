@@ -611,7 +611,7 @@ public:
         {
             block_type* tmp_block = new block_type[num_blocks];
             blocks_per_thread.push_back(tmp_block);
-            block_cur_el.push_back(0);
+            block_cur_el.insert(v1.begin()+(33*i), 0);
 
         }
         m_cur_el = 0;
@@ -830,20 +830,26 @@ public:
     
     void parallel_push(const value_type& val, const int thread_id)
     {
-        const internal_size_type cur_el = block_cur_el[thread_id];
-        if (LIKELY(cur_el < m_el_in_block))
-        {
-            blocks_per_thread[thread_id][cur_el / block_type::size][cur_el % block_type::size] = val;
-            ++block_cur_el[thread_id];
-        }
-        else
-        {
-            write_block_to_run(thread_id);
-            block_cur_el[thread_id] = 0;
-            parallel_push(val, thread_id);
-        }
+	    const internal_size_type cur_el = block_cur_element(thread_id)++;
+
+	    if (LIKELY(cur_el < m_el_in_block))
+	    {
+	        blocks_per_thread[thread_id][cur_el / block_type::size]
+	           [cur_el % block_type::size] = val;
+	    }
+	    else
+	    {
+	        --block_cur_element(thread_id);
+	        write_block_to_run(thread_id);
+	        block_cur_element(thread_id) = 0;
+	        parallel_push(val, thread_id);
+	    }
         
     }
+	
+	internal_size_type& block_cur_element(const int thread_id) {
+	   return block_cur_el[33*thread_id];
+	}
 
 
     //! Returns the sorted runs object.
