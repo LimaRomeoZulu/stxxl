@@ -64,7 +64,7 @@ endif()
 
 # please document all build options in doc/install.doc:install_build_options
 
-option(BUILD_EXAMPLES "Build all stxxl examples" OFF)
+option(BUILD_EXAMPLES "Build all stxxl examples" ON)
 
 option(BUILD_TESTS "Build all stxxl test programs" OFF)
 if(BUILD_TESTS)
@@ -787,4 +787,4 @@ install(EXPORT stxxl-targets DESTINATION "${INSTALL_CMAKE_DIR}")
 
 ###############################################################################
 # build tests and tools
-
+add_subdirectory(examples)

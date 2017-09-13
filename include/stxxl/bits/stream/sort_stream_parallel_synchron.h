@@ -611,7 +611,7 @@ public:
         {
             block_type* tmp_block = new block_type[num_blocks];
             blocks_per_thread.push_back(tmp_block);
-            block_cur_el.insert(v1.begin()+(33*i), 0);
+            block_cur_el.insert(block_cur_el.begin()+(33*i), 0);
 
         }
         m_cur_el = 0;
