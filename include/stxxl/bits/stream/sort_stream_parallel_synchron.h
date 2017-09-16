@@ -606,6 +606,8 @@ public:
         allocate();
         num_threads = nthreads;
         num_blocks = nblocks;
+		
+		block_cur_el.resize(num_threads*33);
 
         for(int i=0; i < num_threads; i++) //TODO move to allocate()
         {
@@ -686,6 +688,8 @@ public:
         std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
         assert(m_el_in_run == m_max_el);
 
+		omp_set_nested(1); 
+
         // sort and store m_blocks1
         sort_run(m_blocks1, m_el_in_run);
 
@@ -706,6 +710,8 @@ public:
         }
 
         m_result->add_run(run, m_el_in_run);
+
+		omp_set_nested(0); 
 
         std::swap(m_blocks1, m_blocks2);
 
@@ -792,10 +798,11 @@ public:
         }
         else{            
             std::cout << "Write incomplete to memory thread: " << thread_id << std::endl;
-            if(!flag_writing.test_and_set(std::memory_order_acquire))
+            //Is another thread writing to memory? Case no, write. Case zes, jump to else
+			if(!flag_writing.test_and_set(std::memory_order_acquire))
             {
                 internal_size_type i = 0;
-                for(; i > m_el_in_run - local_m_cur_el; i++)
+                for(; i < m_el_in_run - local_m_cur_el; i++)
                 {
                     m_blocks1[local_m_cur_el / block_type::size][local_m_cur_el % block_type::size] = blocks_per_thread[thread_id][(cur_el - i)/ block_type::size][(cur_el-i) % block_type::size];
                     ++local_m_cur_el;
@@ -809,6 +816,7 @@ public:
                 flag_writing.clear(std::memory_order_release); 
                 std::lock_guard<std::mutex> lk_finish_writing(m_finish_writing);
                 cv_finish_writing.notify_all();
+				write_block_to_run_incomplete_blocks(thread_id);
             }
             else{
                 std::cout << "start waiting incomplete" <<std::endl;
