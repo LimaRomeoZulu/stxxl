@@ -802,7 +802,8 @@ public:
 			if(!flag_writing.test_and_set(std::memory_order_acquire))
             {
                 internal_size_type i = 0;
-                for(; i < m_el_in_run - local_m_cur_el; i++)
+				internal_size_type diff = m_el_in_run - local_m_cur_el;
+                for(; i < diff; i++)
                 {
                     m_blocks1[local_m_cur_el / block_type::size][local_m_cur_el % block_type::size] = blocks_per_thread[thread_id][(cur_el - i)/ block_type::size][(cur_el-i) % block_type::size];
                     ++local_m_cur_el;
