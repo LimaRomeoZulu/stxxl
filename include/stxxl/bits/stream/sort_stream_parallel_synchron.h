@@ -617,7 +617,7 @@ public:
 
         }
         m_cur_el = 0;
-        m_max_el = 0;
+        m_max_el = 0; 
         m_el_in_block = num_blocks * block_type::size;
         
         std::cout << "m_m2/nblocks: " << m_m2 << std::endl;
@@ -725,7 +725,7 @@ public:
     
     void write_block_to_run(int thread_id)
     {
-        const internal_size_type cur_el = block_cur_el[thread_id];
+        const internal_size_type cur_el = block_cur_element(thread_id);
         internal_size_type local_m_cur_el = m_cur_el.fetch_add(cur_el, std::memory_order_acq_rel);
         if(local_m_cur_el < m_el_in_run)
         {
@@ -784,7 +784,7 @@ public:
     void write_block_to_run_incomplete_blocks(int thread_id)
     {
 
-		internal_size_type cur_el = block_cur_el[thread_id];
+		internal_size_type cur_el = block_cur_element(thread_id);
         internal_size_type local_m_cur_el = m_cur_el.fetch_add(cur_el, std::memory_order_acq_rel);
         if((cur_el + local_m_cur_el)< m_el_in_run)
         {
@@ -807,7 +807,7 @@ public:
                     m_blocks1[local_m_cur_el / block_type::size][local_m_cur_el % block_type::size] = blocks_per_thread[thread_id][(cur_el - i)/ block_type::size][(cur_el-i) % block_type::size];
                     ++local_m_cur_el;
                 }
-                block_cur_el[thread_id] = cur_el - i;
+                block_cur_el[33*thread_id] = cur_el - i;
                 m_max_el.fetch_add(i, std::memory_order_acq_rel);
 
                 assert(m_max_el == m_el_in_run);

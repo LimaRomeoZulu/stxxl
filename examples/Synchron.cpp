@@ -32,14 +32,8 @@ struct my_comparator1
 
 int main(int argc, char** argv) {
 	
-	
-    stxxl::syscall_file input_file("numbers1.dat", stxxl::file::RDONLY | stxxl::file::DIRECT);
-    typedef stxxl::vector<size_t> vector_type;
-    vector_type input_vector(&input_file);
-	
-    // output file object
-    stxxl::syscall_file output_file("output.dat", stxxl::file::RDWR | stxxl::file::CREAT | stxxl::file::DIRECT);
-	vector_type output_vector(&output_file);
+	std::ofstream outputfile;
+	outputfile.open("output.dat");
 	
 	stxxl::stats * Stats = stxxl::stats::get_instance();
 	
@@ -48,14 +42,14 @@ int main(int argc, char** argv) {
 	typedef stxxl::parallel_sorter_synchron<size_t, my_comparator1 > sorter_type;
 	int nthread;
 	std::stringstream(argv[1]) >> nthread;
-	sorter_type quartetSorter(my_comparator1(),static_cast<size_t>(1)<<26, nthread);
+	sorter_type quartetSorter(my_comparator1(),static_cast<size_t>(1)<<27, nthread);
 
 
 	#pragma omp parallel num_threads(nthread)
 	{		
 		const int tid = omp_get_thread_num();
 		#pragma omp for 
-		for(size_t i = 0; i < input_vector.size(); i++)
+		for(size_t i = static_cast<size_t>(1)<<27; i>0; i--)
 		{
 			quartetSorter.push(i, tid);
 		}
@@ -71,10 +65,10 @@ int main(int argc, char** argv) {
 	
 	//while (!quartetSorter.empty())
 	//{
-		//output_vector.push_back(*quartetSorter);
+		//outputfile << *quartetSorter << std::endl;
 		//++quartetSorter;
-	//}
-	 
+		//}
+	outputfile.close();
 	quartetSorter.clear();
 	
 	return 0;
