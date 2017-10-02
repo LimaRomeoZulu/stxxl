@@ -42,16 +42,16 @@ int main(int argc, char** argv) {
 	typedef stxxl::parallel_sorter_synchron<size_t, my_comparator1 > sorter_type;
 	int nthread;
 	std::stringstream(argv[1]) >> nthread;
-	sorter_type quartetSorter(my_comparator1(),static_cast<size_t>(1)<<27, nthread);
+	sorter_type quartetSorter(my_comparator1(),static_cast<size_t>(1)<<30, nthread);
 
 
 	#pragma omp parallel num_threads(nthread)
 	{		
 		const int tid = omp_get_thread_num();
 		#pragma omp for 
-		for(size_t i = static_cast<size_t>(1)<<27; i>0; i--)
+		for(size_t i = static_cast<size_t>(1)<<2; i>0; i--)
 		{
-			quartetSorter.push(i, tid);
+			quartetSorter.push(0, tid);
 		}
 	}		
 	
