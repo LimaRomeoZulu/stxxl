@@ -34,6 +34,8 @@
 #include <algorithm>
 #include <atomic>  
 #include <stxxl/stats>
+#include <iostream>
+#include <fstream>
 
 STXXL_BEGIN_NAMESPACE
 
@@ -505,6 +507,8 @@ private:
     std::condition_variable cv_finish_writing;
     
     std::atomic_flag flag_writing = ATOMIC_FLAG_INIT;
+	
+	std::ofstream io_stats;
 
 
 protected:
@@ -607,11 +611,12 @@ public:
         }
         assert(m_m2 > 0);
 		
-		 //Check if there is enough memory for the sorter. m_m2 should be at least twice as big as the number of threads * nblocks
-		if(m_m2/nblocks/2 < nthreads){
-			std::cout << "You use " << nthreads << " threads and only " << memory_to_use << ". Please either increase the used memory or decrease the number of threads." << std::endl;
-			return 0;
-		}
+        m_cur_el = 0;
+        m_max_el = 0; 
+        m_el_in_block = num_blocks * block_type::size;
+		
+		io_stats.open("io_stats", std::ios_base::app);
+		io_stats << "Write Time, Number of Writes, Written Volume" << std::endl;
 		
         allocate();
         num_threads = nthreads;
@@ -626,9 +631,7 @@ public:
             block_cur_el.insert(block_cur_el.begin()+(33*i), 0);
 
         }
-        m_cur_el = 0;
-        m_max_el = 0; 
-        m_el_in_block = num_blocks * block_type::size;
+
         
         std::cout << "m_m2/nblocks: " << m_m2 << std::endl;
         std::cout << "block_type::size: " << block_type::size << std::endl;
@@ -696,8 +699,8 @@ public:
     
     void write_to_memory()
     {
-        //stxxl::stats* Stats = stxxl::stats::get_instance();
-	//stxxl::stats_data stats_begin(*Stats);
+        stxxl::stats* Stats = stxxl::stats::get_instance();
+		stxxl::stats_data stats_begin(*Stats);
 	//std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
         assert(m_el_in_run == m_max_el);
 
@@ -732,8 +735,11 @@ public:
         m_cur_el.store(0);
         //std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 	
-	 //std::cout << (stxxl::stats_data(*Stats) - stats_begin); // print i/o statistics        
-
+		stxxl::stats_data stats_end(*Stats);
+		io_stats << (stats_begin - stats_end).get_write_time() << "," << (stats_begin - stats_end).get_writes() << "," << (stats_begin - stats_end).get_written_volume ()<< std::endl; // print i/o statistics        
+		
+		 std::cout << (stxxl::stats_data(*Stats) - stats_begin); // print i/o statistics
+		
         //std::cout << "Writing took: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()
               //      << " microseconds." << std::endl;
     }
