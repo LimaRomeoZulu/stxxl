@@ -611,10 +611,6 @@ public:
         }
         assert(m_m2 > 0);
 		
-        m_cur_el = 0;
-        m_max_el = 0; 
-        m_el_in_block = num_blocks * block_type::size;
-		
 		io_stats.open("io_stats", std::ios_base::app);
 		io_stats << "Write Time, Number of Writes, Written Volume" << std::endl;
 		
@@ -631,7 +627,10 @@ public:
             block_cur_el.insert(block_cur_el.begin()+(33*i), 0);
 
         }
-
+		
+        m_cur_el = 0;
+        m_max_el = 0; 
+        m_el_in_block = num_blocks * block_type::size;
         
         std::cout << "m_m2/nblocks: " << m_m2 << std::endl;
         std::cout << "block_type::size: " << block_type::size << std::endl;
@@ -649,6 +648,7 @@ public:
             delete[] blocks_per_thread[i];
             blocks_per_thread[i] = NULL;
         }
+		io_stats.close();
     }
 
     //! Clear current state and remove all items.
@@ -701,7 +701,7 @@ public:
     {
         stxxl::stats* Stats = stxxl::stats::get_instance();
 		stxxl::stats_data stats_begin(*Stats);
-	//std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
         assert(m_el_in_run == m_max_el);
 
 		omp_set_nested(1); 
@@ -733,15 +733,15 @@ public:
 
         m_max_el.store(0);
         m_cur_el.store(0);
-        //std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 	
 		stxxl::stats_data stats_end(*Stats);
 		io_stats << (stats_begin - stats_end).get_write_time() << "," << (stats_begin - stats_end).get_writes() << "," << (stats_begin - stats_end).get_written_volume ()<< std::endl; // print i/o statistics        
 		
 		 std::cout << (stxxl::stats_data(*Stats) - stats_begin); // print i/o statistics
 		
-        //std::cout << "Writing took: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()
-              //      << " microseconds." << std::endl;
+		 std::cout << "Writing took: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()
+			       << " microseconds." << std::endl;
     }
     
     void write_block_to_run(int thread_id)
@@ -764,9 +764,9 @@ public:
             //std::cout << "Write to memory thread: " << thread_id << std::endl;
             if(!flag_writing.test_and_set(std::memory_order_acquire))
             {
-                //std::chrono::steady_clock::time_point end_insertion = std::chrono::steady_clock::now();
-                //std::cout << "Inserting took: " << std::chrono::duration_cast<std::chrono::microseconds>(end_insertion - begin_insertion).count()
-                  //          << " microseconds." << std::endl;
+                std::chrono::steady_clock::time_point end_insertion = std::chrono::steady_clock::now();
+                std::cout << "Inserting took: " << std::chrono::duration_cast<std::chrono::microseconds>(end_insertion - begin_insertion).count()
+					          << " microseconds." << std::endl;
                 if(m_max_el == m_el_in_run)
                 {
                     write_to_memory();
