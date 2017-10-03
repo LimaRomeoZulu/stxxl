@@ -606,12 +606,6 @@ public:
                                 "please increase parameter 'memory_to_use'");
         }
         assert(m_m2 > 0);
-		
-		//Check if there is enough memory for the sorter. m_m2 should be at least twice as big as the number of threads * nblocks
-		if(m_m2/nblocks/2 < nthreads){
-			std::cout << "You use " << nthreads << " threads and only " << memory_to_use << ". Please either increase the used memory or decrease the number of threads." << std::endl;
-			return 0;
-		}
 
         allocate();
         num_threads = nthreads;
