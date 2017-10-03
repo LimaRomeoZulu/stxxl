@@ -33,6 +33,7 @@
 #include <thread>
 #include <algorithm>
 #include <atomic>  
+#include <stxxl/stats>
 
 STXXL_BEGIN_NAMESPACE
 
@@ -533,15 +534,16 @@ protected:
 
     void compute_result()
     {
+	//stxxl::stats* Stats = stxxl::stats::get_instance();
+ 	//stxxl::stats_data stats_begin(*Stats);
         std::cout << "Compute_results" << std::endl;
+        if (m_cur_el == 0)
+            return;
         
         for(int i = 0; i < num_threads; i++)
         {
             write_block_to_run_incomplete_blocks(i);
         }
-        
-        if (m_cur_el == 0)
-            return;
         
         sort_run(m_blocks1, m_cur_el);
 
@@ -554,7 +556,8 @@ protected:
             return;
         }
 
-        const unsigned_type cur_run_size = ceil(m_cur_el/block_type::size);         // in blocks
+        internal_size_type local_m_cur_el = m_cur_el.load();
+	const unsigned_type cur_run_size = div_ceil(local_m_cur_el,block_type::size);         // in blocks
         run.resize(cur_run_size);
         block_manager* bm = block_manager::get_instance();
         bm->new_blocks(AllocStr(), make_bid_iterator(run.begin()), make_bid_iterator(run.end()));
@@ -580,6 +583,7 @@ protected:
             if (m_write_reqs[i].get())
                 m_write_reqs[i]->wait();
         }
+	 //std::cout << (stxxl::stats_data(*Stats) - stats_begin); // print i/o statistics
     }
 
 public:
@@ -654,6 +658,7 @@ public:
 
         m_result_computed = false;
         m_cur_el = 0;
+        m_max_el = 0; 
 
         for (unsigned_type i = 0; i < m_m2; ++i)
         {
@@ -691,7 +696,9 @@ public:
     
     void write_to_memory()
     {
-        std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+        //stxxl::stats* Stats = stxxl::stats::get_instance();
+	//stxxl::stats_data stats_begin(*Stats);
+	//std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
         assert(m_el_in_run == m_max_el);
 
 		omp_set_nested(1); 
@@ -723,10 +730,12 @@ public:
 
         m_max_el.store(0);
         m_cur_el.store(0);
-        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-        
-        std::cout << "Writing took: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()
-                    << " microseconds." << std::endl;
+        //std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+	
+	 //std::cout << (stxxl::stats_data(*Stats) - stats_begin); // print i/o statistics        
+
+        //std::cout << "Writing took: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()
+              //      << " microseconds." << std::endl;
     }
     
     void write_block_to_run(int thread_id)
@@ -746,12 +755,12 @@ public:
         }
         else
         {            
-            std::cout << "Write to memory thread: " << thread_id << std::endl;
+            //std::cout << "Write to memory thread: " << thread_id << std::endl;
             if(!flag_writing.test_and_set(std::memory_order_acquire))
             {
-                std::chrono::steady_clock::time_point end_insertion = std::chrono::steady_clock::now();
-                std::cout << "Inserting took: " << std::chrono::duration_cast<std::chrono::microseconds>(end_insertion - begin_insertion).count()
-                            << " microseconds." << std::endl;
+                //std::chrono::steady_clock::time_point end_insertion = std::chrono::steady_clock::now();
+                //std::cout << "Inserting took: " << std::chrono::duration_cast<std::chrono::microseconds>(end_insertion - begin_insertion).count()
+                  //          << " microseconds." << std::endl;
                 if(m_max_el == m_el_in_run)
                 {
                     write_to_memory();
@@ -771,10 +780,10 @@ public:
                 cv_finish_writing.notify_all();
             }
             else{
-                std::cout << "start waiting" <<std::endl;
+                //std::cout << "start waiting" <<std::endl;
                 std::unique_lock<std::mutex> lk_finish_writing(m_finish_writing);
                 cv_finish_writing.wait(lk_finish_writing);
-                std::cout << "finish waiting" <<std::endl;
+                //std::cout << "finish waiting" <<std::endl;
 
                 local_m_cur_el = m_cur_el.fetch_add(cur_el, std::memory_order_acq_rel);
                 for(internal_size_type i = 0; i < cur_el; i++)
