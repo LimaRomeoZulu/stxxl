@@ -736,7 +736,7 @@ public:
         std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 	
 		stxxl::stats_data stats_end(*Stats);
-		io_stats << (stats_begin - stats_end).get_write_time() << "," << (stats_begin - stats_end).get_writes() << "," << (stats_begin - stats_end).get_written_volume ()<< std::endl; // print i/o statistics        
+		io_stats << (stats_end - stats_begin).get_write_time() << "," << (stats_end - stats_begin).get_writes() << "," << (stats_end - stats_begin).get_written_volume ()<< std::endl; // print i/o statistics        
 		
 		 std::cout << (stxxl::stats_data(*Stats) - stats_begin); // print i/o statistics
 		
