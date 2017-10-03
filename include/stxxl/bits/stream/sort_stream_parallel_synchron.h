@@ -508,7 +508,9 @@ private:
     
     std::atomic_flag flag_writing = ATOMIC_FLAG_INIT;
 	
-	std::ofstream io_stats;
+	//std::ofstream io_stats;
+	
+	//stxxl::stats* Stats;
 
 
 protected:
@@ -611,8 +613,8 @@ public:
         }
         assert(m_m2 > 0);
 		
-		io_stats.open("io_stats", std::ios_base::app);
-		io_stats << "Write Time, Number of Writes, Written Volume" << std::endl;
+		//io_stats.open("io_stats", std::ios_base::app);
+		//io_stats << "Write Time, Number of Writes, Written Volume" << std::endl;
 		
         allocate();
         num_threads = nthreads;
@@ -631,6 +633,8 @@ public:
         m_cur_el = 0;
         m_max_el = 0; 
         m_el_in_block = num_blocks * block_type::size;
+		
+		//Stats = stxxl::stats::get_instance();
         
         std::cout << "m_m2/nblocks: " << m_m2 << std::endl;
         std::cout << "block_type::size: " << block_type::size << std::endl;
@@ -648,7 +652,7 @@ public:
             delete[] blocks_per_thread[i];
             blocks_per_thread[i] = NULL;
         }
-		io_stats.close();
+		//io_stats.close();
     }
 
     //! Clear current state and remove all items.
@@ -699,8 +703,7 @@ public:
     
     void write_to_memory()
     {
-        stxxl::stats* Stats = stxxl::stats::get_instance();
-		stxxl::stats_data stats_begin(*Stats);
+		//stxxl::stats_data stats_begin(*Stats);
 		std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
         assert(m_el_in_run == m_max_el);
 
@@ -735,10 +738,10 @@ public:
         m_cur_el.store(0);
         std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 	
-		stxxl::stats_data stats_end(*Stats);
-		io_stats << (stats_end - stats_begin).get_write_time() << "," << (stats_end - stats_begin).get_writes() << "," << (stats_end - stats_begin).get_written_volume ()<< std::endl; // print i/o statistics        
+		//stxxl::stats_data stats_end(*Stats);
+		//io_stats << (stats_end - stats_begin).get_write_time() << "," << (stats_end - stats_begin).get_writes() << "," << (stats_end - stats_begin).get_written_volume ()<< std::endl; // print i/o statistics        
 		
-		 std::cout << (stxxl::stats_data(*Stats) - stats_begin); // print i/o statistics
+		 //std::cout << (stxxl::stats_data(*Stats) - stats_begin); // print i/o statistics
 		
 		 std::cout << "Writing took: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()
 			       << " microseconds." << std::endl;
