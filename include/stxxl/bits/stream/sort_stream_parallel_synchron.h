@@ -543,13 +543,14 @@ protected:
 	//stxxl::stats* Stats = stxxl::stats::get_instance();
  	//stxxl::stats_data stats_begin(*Stats);
         std::cout << "Compute_results" << std::endl;
-        if (m_cur_el == 0)
-            return;
         
         for(int i = 0; i < num_threads; i++)
         {
             write_block_to_run_incomplete_blocks(i);
         }
+
+        if (m_cur_el == 0)
+            return;
         
         sort_run(m_blocks1, m_cur_el);
 
@@ -787,6 +788,7 @@ public:
                 
                 std::lock_guard<std::mutex> lk_finish_writing(m_finish_writing);
                 cv_finish_writing.notify_all();
+		write_block_to_run(thread_id);
             }
             else{
                 //std::cout << "start waiting" <<std::endl;
@@ -867,8 +869,7 @@ public:
 
 	    if (LIKELY(cur_el < m_el_in_block))
 	    {
-	        blocks_per_thread[thread_id][cur_el / block_type::size]
-	           [cur_el % block_type::size] = val;
+	        blocks_per_thread[thread_id][cur_el / block_type::size][cur_el % block_type::size] = val;
 	    }
 	    else
 	    {
