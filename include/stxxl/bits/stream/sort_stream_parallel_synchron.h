@@ -604,7 +604,7 @@ public:
           m_m2((unsigned_type)(floor(m_memsize / 2 / nblocks) * nblocks)),
           m_el_in_run(m_m2 * block_type::size),
           m_blocks1(NULL), m_blocks2(NULL),
-          m_write_reqs(NULL)
+          m_write_reqs(NULL),num_threads(0), num_blocks(0)
     {
         sort_helper::verify_sentinel_strict_weak_ordering(m_cmp);
         if (!(2 * BlockSize * sort_memory_usage_factor() <= m_memory_to_use)) {
@@ -617,22 +617,13 @@ public:
 		//io_stats.open("io_stats", std::ios_base::app);
 		//io_stats << "Write Time, Number of Writes, Written Volume" << std::endl;
 		
-        allocate();
         num_threads = nthreads;
         num_blocks = nblocks;
-		
-		block_cur_el.resize(num_threads*33);
 
-        for(int i=0; i < num_threads; i++) //TODO move to allocate()
-        {
-            block_type* tmp_block = new block_type[num_blocks];
-            blocks_per_thread.push_back(tmp_block);
-            block_cur_el.insert(block_cur_el.begin()+(33*i), 0);
-
-        }
+        allocate();
 		
-        m_cur_el = 0;
-        m_max_el = 0; 
+	block_cur_el.resize(num_threads*33);
+
         m_el_in_block = num_blocks * block_type::size;
 		
 		//Stats = stxxl::stats::get_instance();
@@ -648,11 +639,7 @@ public:
     {
         m_result_computed = 1;
         deallocate();
-        for(int i=0; i < num_threads; i++) //TODO move to deallocate()
-        {
-            delete[] blocks_per_thread[i];
-            blocks_per_thread[i] = NULL;
-        }
+
 		//io_stats.close();
     }
 
@@ -684,6 +671,15 @@ public:
 
             m_write_reqs = new request_ptr[m_m2];
         }
+
+        for(int i=0; i < num_threads; i++) 
+        {
+            block_type* tmp_block = new block_type[num_blocks];
+            blocks_per_thread.push_back(tmp_block);
+            block_cur_el.insert(block_cur_el.begin()+(33*i), 0);
+
+        }
+		
         clear();
     }
 
@@ -699,6 +695,11 @@ public:
 
             delete[] m_write_reqs;
             m_write_reqs = NULL;
+        }
+        for(int i=num_threads-1; i >= 0; i--) 
+        {
+            delete[] blocks_per_thread[i];
+            blocks_per_thread.pop_back();
         }
     }
     
