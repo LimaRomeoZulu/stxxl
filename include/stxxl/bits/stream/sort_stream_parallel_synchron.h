@@ -620,13 +620,10 @@ public:
         num_threads = nthreads;
         num_blocks = nblocks;
 
-        allocate();
-		
 	block_cur_el.resize(num_threads*33);
-
         m_el_in_block = num_blocks * block_type::size;
-		
-		//Stats = stxxl::stats::get_instance();
+
+        allocate();
         
         std::cout << "m_m2/nblocks: " << m_m2 << std::endl;
         std::cout << "block_type::size: " << block_type::size << std::endl;
