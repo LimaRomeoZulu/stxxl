@@ -742,8 +742,7 @@ public:
 		
 		 //std::cout << (stxxl::stats_data(*Stats) - stats_begin); // print i/o statistics
 		
-		 std::cout << "Writing took: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()
-			       << " microseconds." << std::endl;
+		 //std::cout << "Writing took: " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << " microseconds." << std::endl;
     }
     
     void write_block_to_run(int thread_id)
@@ -766,9 +765,8 @@ public:
             //std::cout << "Write to memory thread: " << thread_id << std::endl;
             if(!flag_writing.test_and_set(std::memory_order_acquire))
             {
-                std::chrono::steady_clock::time_point end_insertion = std::chrono::steady_clock::now();
-                std::cout << "Inserting took: " << std::chrono::duration_cast<std::chrono::microseconds>(end_insertion - begin_insertion).count()
-					          << " microseconds." << std::endl;
+                //std::chrono::steady_clock::time_point end_insertion = std::chrono::steady_clock::now();
+                //std::cout << "Inserting took: " << std::chrono::duration_cast<std::chrono::microseconds>(end_insertion - begin_insertion).count()  << " microseconds." << std::endl;
                 if(m_max_el == m_el_in_run)
                 {
                     write_to_memory();
