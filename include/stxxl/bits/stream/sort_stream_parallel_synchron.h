@@ -889,10 +889,7 @@ public:
     {
         if (!m_result_computed)
         {    
-            #pragma omp single
-            {
                 compute_result();
-            }
 
             m_result_computed = true;
 #ifdef STXXL_PRINT_STAT_AFTER_RF
