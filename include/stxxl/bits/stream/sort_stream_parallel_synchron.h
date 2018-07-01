@@ -749,7 +749,7 @@ public:
     {
         const internal_size_type cur_el = block_cur_element(thread_id);
         internal_size_type local_m_cur_el = m_cur_el.fetch_add(cur_el, std::memory_order_acq_rel);
-        if(local_m_cur_el < m_el_in_run)
+        if(local_m_cur_el + cur_el <= m_el_in_run)
         {
             for(internal_size_type i = 0; i < cur_el; i++)
             {
@@ -787,18 +787,9 @@ public:
 		write_block_to_run(thread_id);
             }
             else{
-                //std::cout << "start waiting" <<std::endl;
                 std::unique_lock<std::mutex> lk_finish_writing(m_finish_writing);
                 cv_finish_writing.wait(lk_finish_writing);
-                //std::cout << "finish waiting" <<std::endl;
-
-                local_m_cur_el = m_cur_el.fetch_add(cur_el, std::memory_order_acq_rel);
-                for(internal_size_type i = 0; i < cur_el; i++)
-                {
-                    m_blocks1[local_m_cur_el / block_type::size][local_m_cur_el % block_type::size] = blocks_per_thread[thread_id][i/ block_type::size][i % block_type::size];
-                    ++local_m_cur_el;    
-                }
-                m_max_el.fetch_add(cur_el, std::memory_order_acq_rel);
+		write_block_to_run(thread_id);
             }
         }
     }
